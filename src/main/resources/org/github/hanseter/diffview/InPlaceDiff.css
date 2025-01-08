@@ -1,0 +1,12 @@
+.removed {
+    -fx-fill: red;
+    -fx-font-weight: bold;
+}
+.added {
+    -fx-fill: green;
+    -fx-font-weight: bold;
+}
+.changed {
+    -fx-fill: orange;
+    -fx-font-weight: bold;
+}

@@ -1,6 +1,5 @@
 package org.github.hanseter.diffview
 
-import com.sun.javafx.geom.Curve
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.HorizontalDirection
@@ -13,7 +12,6 @@ import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.scene.shape.StrokeLineCap
 import org.fxmisc.richtext.CodeArea
-import kotlin.math.roundToInt
 
 class TextOutline(private val codeArea: CodeArea) {
 

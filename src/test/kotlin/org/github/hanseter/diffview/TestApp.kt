@@ -2,6 +2,7 @@ package org.github.hanseter.diffview
 
 import javafx.application.Application
 import javafx.application.Platform
+import javafx.geometry.HorizontalDirection
 import javafx.scene.Scene
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
@@ -22,16 +23,42 @@ fun main(args: Array<String>) {
 }
 
 class TestApp : Application() {
-    val mainNode = TextOutline(
-        CodeArea(
-            this.javaClass.classLoader.getResourceAsStream("TestFile.java").bufferedReader().readText()
-        ).apply {
-            addLineNumbers()
-            visibleParagraphs.addModificationObserver(
-                VisibleParagraphStyler(this, this@TestApp::computeHighlighting)
-            )
-            stylesheets.add(TestApp::class.java.classLoader.getResource("java-keywords.css").toExternalForm())
-        }).node
+    val mainNode =
+        InPlaceDiffView(
+            "abc\n123\ndef abc jik\nabc\n" +
+                    "123\n" +
+                    "def\nabc\n" +
+                    "123\n" +
+                    "def\nabc\n" +
+                    "123\n" +
+                    "def\nabc\n" +
+                    "123\n" +
+                    "def\n" +
+                    "def\n" +
+                    "def\n",
+            "123\n" +
+                    "abc\n123\ndefg abc hij\nabc\n" +
+                    "123\n" +
+                    "def\nabc\n" +
+                    "123\n" +
+                    "def\nabc\n" +
+                    "123\n" +
+                    "def\nabc\n" +
+                    "123\n" +
+                    "def\n"
+        ).node
+//        TextOutline(
+//        CodeArea(
+//            this.javaClass.classLoader.getResourceAsStream("TestFile.java").bufferedReader().readText()
+//        ).apply {
+//            addLineNumbers()
+//            visibleParagraphs.addModificationObserver(
+//                VisibleParagraphStyler(this, this@TestApp::computeHighlighting)
+//            )
+//            stylesheets.add(TestApp::class.java.classLoader.getResource("java-keywords.css").toExternalForm())
+//        }).apply {
+//        side = HorizontalDirection.RIGHT
+//    }.node
 //        SyncedCodeAreas(
 //        "abc\n123\ndef\nabc\n" +
 //                "123\n" +
