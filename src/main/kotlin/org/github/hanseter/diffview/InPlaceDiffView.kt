@@ -29,21 +29,32 @@ class InPlaceDiffView(
         isEditable = false
         stylesheets.add(InPlaceDiffView::class.java.getResource("InPlaceDiff.css")!!.toString())
         setStyleSpans(0, createStyleSpans())
+        diff.forEachIndexed { i, row ->
+            val style = when (row.tag) {
+                DiffRow.Tag.INSERT -> "added"
+                DiffRow.Tag.DELETE -> "removed"
+                DiffRow.Tag.CHANGE -> "changed"
+                DiffRow.Tag.EQUAL, null -> return@forEachIndexed
+            }
+            setParagraphStyle(i, listOf(style))
+        }
         addLineNumbers()
     }
 
-    val scrollBar = TextOutline(textArea).apply {
-        lineColorizer = { i, _ ->
-            when (diff[i].tag) {
-                DiffRow.Tag.INSERT -> Color.GREEN
-                DiffRow.Tag.DELETE -> Color.RED
-                DiffRow.Tag.CHANGE -> Color.ORANGE
-                DiffRow.Tag.EQUAL, null -> Color.GRAY
+    val scrollBar = TextOutline(
+        listOf(CodeAreaOutlineWrapper(textArea).apply {
+            lineColorizer = { i, _ ->
+                when (diff[i].tag) {
+                    DiffRow.Tag.INSERT -> Color.GREEN
+                    DiffRow.Tag.DELETE -> Color.RED
+                    DiffRow.Tag.CHANGE -> Color.ORANGE
+                    DiffRow.Tag.EQUAL, null -> Color.GRAY
+                }
             }
-        }
-    }
+        })
+    )
 
-    val node = HBox(scrollBar.node, textArea)
+    val node = scrollBar.node
 
     private fun createStyleSpans(): StyleSpans<Collection<String>> {
         val spansBuilder = StyleSpansBuilder<Collection<String>>()

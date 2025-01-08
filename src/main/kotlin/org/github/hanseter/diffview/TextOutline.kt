@@ -11,16 +11,20 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.scene.shape.StrokeLineCap
-import org.fxmisc.richtext.CodeArea
 
-class TextOutline(private val codeArea: CodeArea) {
+/**
+ * A control that shows a rough graphical representation that can be used to scroll through code areas.
+ */
+class TextOutline(private val codeAreas: List<TextControl<*>>) {
 
     private val _sideProperty: ObjectProperty<HorizontalDirection> =
         SimpleObjectProperty(HorizontalDirection.LEFT).apply {
             addListener { _, _, side ->
+                node.children.clear()
+                node.children.addAll(codeAreas.map { it.control })
                 when (side) {
-                    HorizontalDirection.LEFT -> node.children.setAll(scrollbar, codeArea)
-                    HorizontalDirection.RIGHT -> node.children.setAll(codeArea, scrollbar)
+                    HorizontalDirection.LEFT -> node.children.add(0, scrollbar)
+                    HorizontalDirection.RIGHT -> node.children.add(scrollbar)
                 }
             }
         }
@@ -31,11 +35,9 @@ class TextOutline(private val codeArea: CodeArea) {
 
     fun sideProperty() = _sideProperty
 
-    var lineColorizer: (Int, String) -> Color = { _, _ -> Color.GRAY }
-
     private val scrollbar = Canvas().apply {
-        width = 100.0
-        heightProperty().bind(codeArea.heightProperty())
+        width = 100.0 * codeAreas.size
+        heightProperty().bind(codeAreas.first().control.heightProperty())
         layoutBoundsProperty().addListener { _, _, _ -> draw() }
         setOnMouseMoved(::onMouseMoved)
         setOnMousePressed(::onMousePressed)
@@ -47,38 +49,52 @@ class TextOutline(private val codeArea: CodeArea) {
 
     private var visibleRange = Double.MAX_VALUE.rangeTo(Double.MAX_VALUE)
 
-    val node = HBox(scrollbar, codeArea)
+    val node = HBox(scrollbar).apply {
+        children.addAll(codeAreas.map { it.control })
+        minHeight = 0.0
+    }
 
     init {
-        codeArea.apply {
-            HBox.setHgrow(this, Priority.ALWAYS)
-            textProperty().addListener { _, _, _ -> draw() }
-            visibleParagraphs.addChangeObserver { draw() }
+        codeAreas.forEach { area ->
+            HBox.setHgrow(area.control, Priority.ALWAYS)
+            area.textProperty().addListener { _, _, _ -> draw() }
+            area.addVisibleLinesChangedCallback { draw() }
         }
         draw()
     }
 
     private fun draw() {
-        val lines = codeArea.text.lines()
-        val heightPerLine = scrollbar.height / (lines.size + 1)
+        val maxLineWidth = codeAreas.flatMap { it.text.lines() }.maxOf { it.length }.coerceAtMost(500)
+        val controlWithMostLines = codeAreas.maxBy { it.lineCount }
+        val widthPerChar = 100.0 / (maxLineWidth + 1)
+        val heightPerLine = scrollbar.height / (controlWithMostLines.lineCount + 1)
         val ctx = scrollbar.graphicsContext2D
-        ctx.lineCap = StrokeLineCap.ROUND
-        ctx.lineWidth = (heightPerLine / 2).coerceAtMost(5.0)
         ctx.clearRect(0.0, 0.0, scrollbar.width, scrollbar.height)
-        drawLines(ctx, lines, heightPerLine)
-        drawVisibleTextIndiciator(ctx)
+        codeAreas.forEachIndexed { i, it ->
+            ctx.translate(i * 100.0, 0.0)
+            if (i > 0) {
+                ctx.stroke = Color.BLACK
+                ctx.lineCap = StrokeLineCap.BUTT
+                ctx.lineWidth = 1.0
+                ctx.strokeLine(0.0, 0.0, 0.0, scrollbar.height)
+            }
+            ctx.lineCap = StrokeLineCap.ROUND
+            ctx.lineWidth = (heightPerLine / 2).coerceAtMost(5.0)
+            drawLines(ctx, it, heightPerLine, widthPerChar)
+        }
+        ctx.translate(-100.0 * (codeAreas.size - 1), 0.0)
+        drawVisibleTextIndiciator(ctx, controlWithMostLines)
     }
 
     private fun drawLines(
         ctx: GraphicsContext,
-        lines: List<String>,
-        heightPerLine: Double
+        control: TextControl<*>,
+        heightPerLine: Double,
+        widthPerChar: Double
     ) {
-        val maxLineWidth = lines.maxOf { it.length }.coerceAtMost(500)
-        val widthPerChar = scrollbar.width / (maxLineWidth + 1)
         var linePos = heightPerLine / 2
-        lines.forEachIndexed { i, line ->
-            ctx.stroke = lineColorizer(i, line)
+        control.text.lineSequence().forEachIndexed { i, line ->
+            ctx.stroke = control.getLineColor(line, i)
             var from = widthPerChar / 2
             var to = from
             line.forEach { char ->
@@ -98,12 +114,12 @@ class TextOutline(private val codeArea: CodeArea) {
         }
     }
 
-    private fun drawVisibleTextIndiciator(ctx: GraphicsContext) {
+    private fun drawVisibleTextIndiciator(ctx: GraphicsContext, control: TextControl<*>) {
         ctx.fill = Color.LIGHTBLUE.deriveColor(0.0, 1.0, 1.0, 0.3)
         ctx.stroke = Color.LIGHTBLUE
-        val lineSize = codeArea.paragraphs.size
-        val startPct = codeArea.firstVisibleParToAllParIndex() / lineSize.toDouble()
-        val endPct = codeArea.lastVisibleParToAllParIndex() / lineSize.toDouble()
+        val lineSize = control.lineCount - 1
+        val startPct = control.firstVisibleLine / lineSize.toDouble()
+        val endPct = control.lastVisibleLine / lineSize.toDouble()
         val startY = scrollbar.height * startPct
         val endY = scrollbar.height * endPct
         visibleRange = startY..endY
@@ -131,7 +147,7 @@ class TextOutline(private val codeArea: CodeArea) {
 
     private fun moveViewPortTo(y: Double) {
         val pct = y / scrollbar.height
-        codeArea.estimatedScrollYProperty().value = pct * codeArea.totalHeightEstimateProperty().value
+        codeAreas.forEach { it.scrollToYPercent(pct) }
         scrollbar.cursor = Cursor.V_RESIZE
     }
 
