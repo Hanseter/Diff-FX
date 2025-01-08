@@ -55,7 +55,7 @@ class TestApp : Application() {
 
     override fun start(stage: Stage) {
         cb.selectionModel.selectFirst()
-        stage.scene = Scene(mainNode, 400.0, 400.0)
+        stage.scene = Scene(mainNode, 400.0, 200.0)
         stage.show()
     }
 

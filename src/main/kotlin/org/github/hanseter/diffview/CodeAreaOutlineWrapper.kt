@@ -1,6 +1,5 @@
 package org.github.hanseter.diffview
 
-import javafx.beans.property.ReadOnlyStringProperty
 import javafx.beans.value.ObservableValue
 import javafx.scene.paint.Color
 import org.fxmisc.richtext.CodeArea

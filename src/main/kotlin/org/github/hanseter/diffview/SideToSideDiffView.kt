@@ -7,10 +7,11 @@ import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import org.fxmisc.richtext.CodeArea
 
-class SideToSideDiffView(
-    private var leftText: String,
-    private var rightText: String
-) {
+/**
+ * A control to show the diff between two versions of a text side by side.
+ * This adds a TextOutline to scroll the texts.
+ */
+class SideToSideDiffView(leftText: String, rightText: String) {
 
     private val diffBuilder = DiffRowGenerator.create()
         .showInlineDiffs(false)
@@ -25,7 +26,7 @@ class SideToSideDiffView(
         HBox.setHgrow(this, Priority.ALWAYS)
         isEditable = false
         addLineNumbers()
-        stylesheets.add(InPlaceDiffView::class.java.getResource("InPlaceDiff.css")!!.toString())
+        stylesheets.add(InPlaceDiffView::class.java.getResource("diff.css")!!.toString())
         diff.forEachIndexed { i, row ->
             val style = when (row.tag) {
                 DiffRow.Tag.DELETE -> "removed"
@@ -39,7 +40,7 @@ class SideToSideDiffView(
         HBox.setHgrow(this, Priority.ALWAYS)
         isEditable = false
         addLineNumbers()
-        stylesheets.add(InPlaceDiffView::class.java.getResource("InPlaceDiff.css")!!.toString())
+        stylesheets.add(InPlaceDiffView::class.java.getResource("diff.css")!!.toString())
         diff.forEachIndexed { i, row ->
             val style = when (row.tag) {
                 DiffRow.Tag.INSERT -> "added"
@@ -48,28 +49,33 @@ class SideToSideDiffView(
             }
             setParagraphStyle(i, listOf(style))
         }
+        estimatedScrollYProperty().addListener { _, _, y ->
+            //this makes absolutely no sense but manually scrolling still works fine this way
+            //and it's the only way I found to scroll to the top initially
+            estimatedScrollYProperty().value = 0.0
+        }
     }
     private val scrollBar = TextOutline(
         listOf(
-        CodeAreaOutlineWrapper(left).apply {
-            lineColorizer = { i, _ ->
-                when (diff[i].tag) {
-                    DiffRow.Tag.DELETE -> Color.RED
-                    DiffRow.Tag.CHANGE -> Color.ORANGE
-                    DiffRow.Tag.INSERT, DiffRow.Tag.EQUAL, null -> Color.GRAY
+            CodeAreaOutlineWrapper(left).apply {
+                lineColorizer = { i, _ ->
+                    when (diff[i].tag) {
+                        DiffRow.Tag.DELETE -> Color.RED
+                        DiffRow.Tag.CHANGE -> Color.ORANGE
+                        DiffRow.Tag.INSERT, DiffRow.Tag.EQUAL, null -> Color.GRAY
+                    }
+                }
+            },
+            CodeAreaOutlineWrapper(right).apply {
+                lineColorizer = { i, _ ->
+                    when (diff[i].tag) {
+                        DiffRow.Tag.INSERT -> Color.GREEN
+                        DiffRow.Tag.CHANGE -> Color.ORANGE
+                        DiffRow.Tag.DELETE, DiffRow.Tag.EQUAL, null -> Color.GRAY
+                    }
                 }
             }
-        },
-        CodeAreaOutlineWrapper(right).apply {
-            lineColorizer = { i, _ ->
-                when (diff[i].tag) {
-                    DiffRow.Tag.INSERT -> Color.GREEN
-                    DiffRow.Tag.CHANGE -> Color.ORANGE
-                    DiffRow.Tag.DELETE, DiffRow.Tag.EQUAL, null -> Color.GRAY
-                }
-            }
-        }
-    ))
+        ))
     val node = scrollBar.node
 
     init {

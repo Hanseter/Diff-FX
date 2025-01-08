@@ -15,10 +15,18 @@ import org.fxmisc.richtext.CodeArea
 import java.util.function.IntFunction
 
 
+/**
+ * Adds line numbers to this code area.
+ * The line number display will be wide enough to have enough digits to display the current line count.
+ */
 fun CodeArea.addLineNumbers() {
-    addLineNumbers(text.count { it == '\n' } + 1)
+    addLineNumbers(paragraphs.size + 1)
 }
 
+/**
+ * Adds line numbers to this code area.
+ * The line number display will be wide enough to have enough digits to display [lineCount] lines.
+ */
 fun CodeArea.addLineNumbers(lineCount: Int) {
     paragraphGraphicFactory = createParagraphFactory(lineCount.toString().length)
 }

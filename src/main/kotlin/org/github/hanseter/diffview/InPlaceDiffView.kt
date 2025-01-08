@@ -2,6 +2,7 @@ package org.github.hanseter.diffview
 
 import com.github.difflib.text.DiffRow
 import com.github.difflib.text.DiffRowGenerator
+import javafx.application.Platform
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
@@ -9,6 +10,9 @@ import org.fxmisc.richtext.CodeArea
 import org.fxmisc.richtext.model.StyleSpans
 import org.fxmisc.richtext.model.StyleSpansBuilder
 
+/**
+ * A control to show the difference between two texts inline in one [CodeArea].
+ */
 class InPlaceDiffView(
     leftText: String,
     rightText: String
@@ -27,7 +31,7 @@ class InPlaceDiffView(
     private val textArea = CodeArea(diff.joinToString("\n") { it.oldLine }).apply {
         HBox.setHgrow(this, Priority.ALWAYS)
         isEditable = false
-        stylesheets.add(InPlaceDiffView::class.java.getResource("InPlaceDiff.css")!!.toString())
+        stylesheets.add(InPlaceDiffView::class.java.getResource("diff.css")!!.toString())
         setStyleSpans(0, createStyleSpans())
         diff.forEachIndexed { i, row ->
             val style = when (row.tag) {
@@ -39,6 +43,11 @@ class InPlaceDiffView(
             setParagraphStyle(i, listOf(style))
         }
         addLineNumbers()
+        estimatedScrollYProperty().addListener { _, _, y ->
+            //this makes absolutely no sense but manually scrolling still works fine this way
+            //and it's the only way I found to scroll to the top initially
+            estimatedScrollYProperty().value = 0.0
+        }
     }
 
     val scrollBar = TextOutline(

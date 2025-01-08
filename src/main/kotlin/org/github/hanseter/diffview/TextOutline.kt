@@ -14,6 +14,8 @@ import javafx.scene.shape.StrokeLineCap
 
 /**
  * A control that shows a rough graphical representation that can be used to scroll through code areas.
+ *
+ * Please note, that the code areas shall not be displayed elsewhere in the scenegraph as they will be added to the [TextOutline.node].
  */
 class TextOutline(private val codeAreas: List<TextControl<*>>) {
 
@@ -29,10 +31,16 @@ class TextOutline(private val codeAreas: List<TextControl<*>>) {
             }
         }
 
+    /**
+     * The side on which the text outline shall be displayed.
+     */
     var side: HorizontalDirection
         get() = _sideProperty.get()
         set(value) = _sideProperty.set(value)
 
+    /**
+     * The side on which the text outline shall be displayed.
+     */
     fun sideProperty() = _sideProperty
 
     private val scrollbar = Canvas().apply {
@@ -49,6 +57,9 @@ class TextOutline(private val codeAreas: List<TextControl<*>>) {
 
     private var visibleRange = Double.MAX_VALUE.rangeTo(Double.MAX_VALUE)
 
+    /**
+     * The hbox containing the code areas as well as the textoutline.
+     */
     val node = HBox(scrollbar).apply {
         children.addAll(codeAreas.map { it.control })
         minHeight = 0.0
