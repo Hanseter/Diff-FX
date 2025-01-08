@@ -31,6 +31,8 @@ class TextOutline(private val codeArea: CodeArea) {
 
     fun sideProperty() = _sideProperty
 
+    var lineColorizer: (Int, String) -> Color = { _, _ -> Color.GRAY }
+
     private val scrollbar = Canvas().apply {
         width = 100.0
         heightProperty().bind(codeArea.heightProperty())
@@ -60,7 +62,6 @@ class TextOutline(private val codeArea: CodeArea) {
         val lines = codeArea.text.lines()
         val heightPerLine = scrollbar.height / (lines.size + 1)
         val ctx = scrollbar.graphicsContext2D
-        ctx.stroke = Color.RED
         ctx.lineCap = StrokeLineCap.ROUND
         ctx.lineWidth = (heightPerLine / 2).coerceAtMost(5.0)
         ctx.clearRect(0.0, 0.0, scrollbar.width, scrollbar.height)
@@ -76,7 +77,8 @@ class TextOutline(private val codeArea: CodeArea) {
         val maxLineWidth = lines.maxOf { it.length }.coerceAtMost(500)
         val widthPerChar = scrollbar.width / (maxLineWidth + 1)
         var linePos = heightPerLine / 2
-        lines.forEach { line ->
+        lines.forEachIndexed { i, line ->
+            ctx.stroke = lineColorizer(i, line)
             var from = widthPerChar / 2
             var to = from
             line.forEach { char ->

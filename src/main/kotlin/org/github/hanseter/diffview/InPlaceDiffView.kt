@@ -4,6 +4,7 @@ import com.github.difflib.text.DiffRow
 import com.github.difflib.text.DiffRowGenerator
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
+import javafx.scene.paint.Color
 import org.fxmisc.richtext.CodeArea
 import org.fxmisc.richtext.model.StyleSpans
 import org.fxmisc.richtext.model.StyleSpansBuilder
@@ -28,7 +29,21 @@ class InPlaceDiffView(
         isEditable = false
         stylesheets.add(InPlaceDiffView::class.java.getResource("InPlaceDiff.css")!!.toString())
         setStyleSpans(0, createStyleSpans())
+        addLineNumbers()
     }
+
+    val scrollBar = TextOutline(textArea).apply {
+        lineColorizer = { i, _ ->
+            when (diff[i].tag) {
+                DiffRow.Tag.INSERT -> Color.GREEN
+                DiffRow.Tag.DELETE -> Color.RED
+                DiffRow.Tag.CHANGE -> Color.ORANGE
+                DiffRow.Tag.EQUAL, null -> Color.GRAY
+            }
+        }
+    }
+
+    val node = HBox(scrollBar.node, textArea)
 
     private fun createStyleSpans(): StyleSpans<Collection<String>> {
         val spansBuilder = StyleSpansBuilder<Collection<String>>()
@@ -50,7 +65,7 @@ class InPlaceDiffView(
                     length = 0
                 }
 
-                DiffRow.Tag.EQUAL -> length += it.oldLine.length + 1
+                DiffRow.Tag.EQUAL, null -> length += it.oldLine.length + 1
             }
         }
         if (length > 0) {
@@ -71,10 +86,4 @@ class InPlaceDiffView(
         spansBuilder.add(listOf(type), it.oldLine.length + 1)
     }
 
-    val node = textArea
-
-    init {
-        diff.map { }
-        textArea.addLineNumbers()
-    }
 }
