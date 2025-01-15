@@ -1,4 +1,4 @@
-package org.github.hanseter.diffview
+package io.github.hanseter.diffview
 
 import javafx.application.Application
 import javafx.scene.Scene

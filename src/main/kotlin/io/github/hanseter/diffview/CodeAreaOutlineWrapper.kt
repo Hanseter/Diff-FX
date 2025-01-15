@@ -1,4 +1,4 @@
-package org.github.hanseter.diffview
+package io.github.hanseter.diffview
 
 import javafx.beans.value.ObservableValue
 import javafx.scene.paint.Color

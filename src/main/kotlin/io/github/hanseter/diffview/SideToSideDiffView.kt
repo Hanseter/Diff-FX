@@ -1,4 +1,4 @@
-package org.github.hanseter.diffview
+package io.github.hanseter.diffview
 
 import com.github.difflib.text.DiffRow
 import com.github.difflib.text.DiffRowGenerator
@@ -17,6 +17,7 @@ class SideToSideDiffView(leftText: String, rightText: String) {
         .showInlineDiffs(false)
         .inlineDiffByWord(true)
         .mergeOriginalRevised(false)
+        .lineNormalizer { it }
         .build()
 
     private val diff = diffBuilder

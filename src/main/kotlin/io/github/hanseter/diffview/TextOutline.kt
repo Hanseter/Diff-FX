@@ -1,4 +1,4 @@
-package org.github.hanseter.diffview
+package io.github.hanseter.diffview
 
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -11,6 +11,7 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
 import javafx.scene.shape.StrokeLineCap
+import org.fxmisc.richtext.CodeArea
 
 /**
  * A control that shows a rough graphical representation that can be used to scroll through code areas.
@@ -75,7 +76,8 @@ class TextOutline(private val codeAreas: List<TextControl<*>>) {
     }
 
     private fun draw() {
-        val maxLineWidth = codeAreas.flatMap { it.text.lines() }.maxOf { it.length }.coerceAtMost(500)
+        val maxLineWidth =
+            codeAreas.flatMap { it.text.lines() }.maxOf { it.length }.coerceAtMost(500)
         val controlWithMostLines = codeAreas.maxBy { it.lineCount }
         val widthPerChar = 100.0 / (maxLineWidth + 1)
         val heightPerLine = scrollbar.height / (controlWithMostLines.lineCount + 1)
@@ -172,5 +174,13 @@ class TextOutline(private val codeAreas: List<TextControl<*>>) {
 
     private fun onMouseReleased(e: MouseEvent) {
         mousePressYInRange = -1.0
+    }
+
+    companion object {
+        fun forCodeArea(ca: CodeArea): TextOutline =
+            TextOutline(listOf(CodeAreaOutlineWrapper(ca)))
+
+        fun forCodeAreas(cas: List<CodeArea>): TextOutline =
+            TextOutline(cas.map { CodeAreaOutlineWrapper(it) })
     }
 }

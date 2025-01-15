@@ -1,8 +1,7 @@
-package org.github.hanseter.diffview
+package io.github.hanseter.diffview
 
 import com.github.difflib.text.DiffRow
 import com.github.difflib.text.DiffRowGenerator
-import javafx.application.Platform
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.paint.Color
