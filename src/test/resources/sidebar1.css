@@ -1,0 +1,12 @@
+.diff-outline .line:unchanged {
+    -fx-fill: transparent
+}
+.diff-outline .line:changed {
+    -fx-fill: orange
+}
+.diff-outline .line:new {
+    -fx-fill: green
+}
+.diff-outline .line:removed {
+    -fx-fill: red
+}

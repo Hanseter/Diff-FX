@@ -2,6 +2,7 @@ package io.github.hanseter.diffview
 
 import javafx.beans.value.ObservableValue
 import javafx.scene.paint.Color
+import javafx.scene.paint.Paint
 import org.fxmisc.richtext.CodeArea
 
 /**
@@ -12,7 +13,7 @@ class CodeAreaOutlineWrapper(override val control: CodeArea) : TextControl<CodeA
     /**
      * Used to colorize lines differently in the [TextOutline]
      */
-    var lineColorizer: (Int, String) -> Color = { _, _ -> Color.GRAY }
+    var lineColorizer: (Int, String) -> Paint = { _, _ -> Color.GRAY }
 
     override val lineCount: Int
         get() = control.paragraphs.size
@@ -32,5 +33,5 @@ class CodeAreaOutlineWrapper(override val control: CodeArea) : TextControl<CodeA
     override fun addVisibleLinesChangedCallback(callback: () -> Unit) {
         control.visibleParagraphs.addChangeObserver { callback() }
     }
-    override fun getLineColor(line: String, index: Int): Color = lineColorizer(index, line)
+    override fun getLineColor(line: String, index: Int): Paint = lineColorizer(index, line)
 }

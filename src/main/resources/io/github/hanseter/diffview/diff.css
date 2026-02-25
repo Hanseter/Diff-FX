@@ -4,12 +4,12 @@
     -fx-font-weight: bold;
 }
 .added {
--fx-background-color: green;
+    -fx-background-color: green;
     -fx-fill: white;
     -fx-font-weight: bold;
 }
 .changed {
--fx-background-color: orange;
+    -fx-background-color: orange;
     -fx-fill: white;
     -fx-font-weight: bold;
 }

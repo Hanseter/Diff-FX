@@ -2,16 +2,19 @@ package io.github.hanseter.diffview
 
 import com.github.difflib.text.DiffRow
 import com.github.difflib.text.DiffRowGenerator
+import javafx.beans.property.DoubleProperty
+import javafx.beans.property.SimpleDoubleProperty
+import javafx.scene.Node
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
-import javafx.scene.paint.Color
+import javafx.scene.layout.StackPane
 import org.fxmisc.richtext.CodeArea
 
 /**
  * A control to show the diff between two versions of a text side by side.
  * This adds a TextOutline to scroll the texts.
  */
-class SideToSideDiffView(leftText: String, rightText: String) {
+class SideToSideDiffView(leftText: String, rightText: String) : DiffViewBase() {
 
     private val diffBuilder = DiffRowGenerator.create()
         .showInlineDiffs(false)
@@ -20,7 +23,7 @@ class SideToSideDiffView(leftText: String, rightText: String) {
         .lineNormalizer { it }
         .build()
 
-    private val diff = diffBuilder
+    override val diff: List<DiffRow> = diffBuilder
         .generateDiffRows(leftText.lines(), rightText.lines())
 
     private val left = CodeArea(diff.joinToString("\n") { it.oldLine }).apply {
@@ -50,34 +53,28 @@ class SideToSideDiffView(leftText: String, rightText: String) {
             }
             setParagraphStyle(i, listOf(style))
         }
-        estimatedScrollYProperty().addListener { _, _, y ->
-            //this makes absolutely no sense but manually scrolling still works fine this way
-            //and it's the only way I found to scroll to the top initially
-            estimatedScrollYProperty().value = 0.0
-        }
     }
-    private val scrollBar = TextOutline(
+    override val scrollBar = TextOutline(
         listOf(
             CodeAreaOutlineWrapper(left).apply {
                 lineColorizer = { i, _ ->
                     when (diff[i].tag) {
-                        DiffRow.Tag.DELETE -> Color.RED
-                        DiffRow.Tag.CHANGE -> Color.ORANGE
-                        DiffRow.Tag.INSERT, DiffRow.Tag.EQUAL, null -> Color.GRAY
+                        DiffRow.Tag.DELETE -> cssHelper.removedLineColor.get()
+                        DiffRow.Tag.CHANGE -> cssHelper.changedLineColor.get()
+                        DiffRow.Tag.INSERT, DiffRow.Tag.EQUAL, null -> cssHelper.unchangedLineColor.get()
                     }
                 }
             },
             CodeAreaOutlineWrapper(right).apply {
                 lineColorizer = { i, _ ->
                     when (diff[i].tag) {
-                        DiffRow.Tag.INSERT -> Color.GREEN
-                        DiffRow.Tag.CHANGE -> Color.ORANGE
-                        DiffRow.Tag.DELETE, DiffRow.Tag.EQUAL, null -> Color.GRAY
+                        DiffRow.Tag.INSERT -> cssHelper.newLineColor.get()
+                        DiffRow.Tag.CHANGE -> cssHelper.changedLineColor.get()
+                        DiffRow.Tag.DELETE, DiffRow.Tag.EQUAL, null -> cssHelper.unchangedLineColor.get()
                     }
                 }
             }
         ))
-    val node = scrollBar.node
 
     init {
         keepScrollInSync()
@@ -93,6 +90,7 @@ class SideToSideDiffView(leftText: String, rightText: String) {
                 right.estimatedScrollYProperty().value = scroll
                 syncing = false
             }
+            onScrolled()
         }
         right.estimatedScrollYProperty().addListener { _, _, scroll ->
             if (!syncing) {
@@ -101,5 +99,16 @@ class SideToSideDiffView(leftText: String, rightText: String) {
                 syncing = false
             }
         }
+    }
+
+    private var longerTextArea: CodeArea =
+        if (left.paragraphs.size > right.paragraphs.size) left else right
+
+    override fun currentTopLine(): Int = longerTextArea.firstVisibleParToAllParIndex()
+    override fun currentBottomLine(): Int = longerTextArea.lastVisibleParToAllParIndex()
+
+    override fun scrollToPct(pct: Double) {
+        longerTextArea.estimatedScrollYProperty().value =
+            pct * longerTextArea.totalHeightEstimateProperty().value
     }
 }

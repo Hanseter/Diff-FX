@@ -2,12 +2,16 @@ package io.github.hanseter.diffview
 
 import com.github.difflib.text.DiffRow
 import com.github.difflib.text.DiffRowGenerator
+import javafx.beans.property.DoubleProperty
+import javafx.beans.property.SimpleDoubleProperty
+import javafx.scene.Node
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
-import javafx.scene.paint.Color
+import javafx.scene.layout.StackPane
 import org.fxmisc.richtext.CodeArea
 import org.fxmisc.richtext.model.StyleSpans
 import org.fxmisc.richtext.model.StyleSpansBuilder
+import java.awt.SystemColor.control
 
 /**
  * A control to show the difference between two texts inline in one [CodeArea].
@@ -15,7 +19,8 @@ import org.fxmisc.richtext.model.StyleSpansBuilder
 class InPlaceDiffView(
     leftText: String,
     rightText: String
-) {
+) : DiffViewBase() {
+
     private val diffBuilder = DiffRowGenerator.create()
         .showInlineDiffs(true)
         .inlineDiffByWord(true)
@@ -24,7 +29,7 @@ class InPlaceDiffView(
         .newTag { _ -> "+++" }
         .build()
 
-    private val diff = diffBuilder
+    override val diff: List<DiffRow> = diffBuilder
         .generateDiffRows(leftText.lines(), rightText.lines())
 
     private val textArea = CodeArea(diff.joinToString("\n") { it.oldLine }).apply {
@@ -42,27 +47,21 @@ class InPlaceDiffView(
             setParagraphStyle(i, listOf(style))
         }
         addLineNumbers()
-        estimatedScrollYProperty().addListener { _, _, y ->
-            //this makes absolutely no sense but manually scrolling still works fine this way
-            //and it's the only way I found to scroll to the top initially
-            estimatedScrollYProperty().value = 0.0
-        }
+        estimatedScrollYProperty().addListener { _, _, _ -> onScrolled() }
     }
 
-    val scrollBar = TextOutline(
+    override val scrollBar = TextOutline(
         listOf(CodeAreaOutlineWrapper(textArea).apply {
             lineColorizer = { i, _ ->
                 when (diff[i].tag) {
-                    DiffRow.Tag.INSERT -> Color.GREEN
-                    DiffRow.Tag.DELETE -> Color.RED
-                    DiffRow.Tag.CHANGE -> Color.ORANGE
-                    DiffRow.Tag.EQUAL, null -> Color.GRAY
+                    DiffRow.Tag.INSERT -> cssHelper.newLineColor.get()
+                    DiffRow.Tag.DELETE -> cssHelper.removedLineColor.get()
+                    DiffRow.Tag.CHANGE -> cssHelper.changedLineColor.get()
+                    DiffRow.Tag.EQUAL, null -> cssHelper.unchangedLineColor.get()
                 }
             }
         })
     )
-
-    val node = scrollBar.node
 
     private fun createStyleSpans(): StyleSpans<Collection<String>> {
         val spansBuilder = StyleSpansBuilder<Collection<String>>()
@@ -105,4 +104,11 @@ class InPlaceDiffView(
         spansBuilder.add(listOf(type), it.oldLine.length + 1)
     }
 
+    override fun currentTopLine(): Int = textArea.firstVisibleParToAllParIndex()
+    override fun currentBottomLine(): Int = textArea.lastVisibleParToAllParIndex()
+
+    override fun scrollToPct(pct: Double) {
+        textArea.estimatedScrollYProperty().value =
+            pct * textArea.totalHeightEstimateProperty().value
+    }
 }

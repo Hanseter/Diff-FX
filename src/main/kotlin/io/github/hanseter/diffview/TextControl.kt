@@ -4,6 +4,7 @@ import javafx.beans.value.ObservableValue
 import javafx.scene.control.TextArea
 import javafx.scene.layout.Region
 import javafx.scene.paint.Color
+import javafx.scene.paint.Paint
 import org.fxmisc.richtext.CodeArea
 
 /**
@@ -56,7 +57,7 @@ interface TextControl<C : Region> {
     /**
      * Gets the color to use to draw the [line] at [index] in a [TextOutline].
      */
-    fun getLineColor(line: String, index: Int): Color
+    fun getLineColor(line: String, index: Int): Paint
 
 
 }
