@@ -3,7 +3,6 @@ package io.github.hanseter.diffview
 import javafx.beans.value.ObservableValue
 import javafx.scene.control.TextArea
 import javafx.scene.layout.Region
-import javafx.scene.paint.Color
 import javafx.scene.paint.Paint
 import org.fxmisc.richtext.CodeArea
 
@@ -37,6 +36,11 @@ interface TextControl<C : Region> {
      * The wrapped control.
      */
     val control: C
+
+    /**
+     * The height of the content of the text [control].
+     */
+    val contentHeight: Double
 
     /**
      * The displayed text.

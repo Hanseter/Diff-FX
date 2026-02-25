@@ -27,6 +27,7 @@ class InPlaceDiffView(
         .mergeOriginalRevised(true)
         .oldTag { _ -> "---" }
         .newTag { _ -> "+++" }
+        .lineNormalizer { it }
         .build()
 
     override val diff: List<DiffRow> = diffBuilder

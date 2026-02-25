@@ -4,6 +4,7 @@ import com.github.difflib.text.DiffRow
 import javafx.application.Platform
 import javafx.beans.property.DoubleProperty
 import javafx.beans.property.SimpleDoubleProperty
+import javafx.geometry.HorizontalDirection
 import javafx.scene.Node
 import javafx.scene.layout.StackPane
 
@@ -13,14 +14,41 @@ abstract class DiffViewBase {
     protected val cssHelper: DiffCssHelper = DiffCssHelper().apply {
         unchangedLineColor.addListener { _, _, _ ->
             scrollBar.redrawOutline()
-            println("Changed")
         }
         changedLineColor.addListener { _, _, _ -> scrollBar.redrawOutline() }
         newLineColor.addListener { _, _, _ -> scrollBar.redrawOutline() }
         removedLineColor.addListener { _, _, _ -> scrollBar.redrawOutline() }
+
+        viewPortFillColor.addListener { _, _, new -> scrollBar.viewPortFill = new }
+        viewPortStrokeColor.addListener { _, _, new -> scrollBar.viewPortStroke = new }
     }
 
     protected abstract val scrollBar: TextOutline
+
+    /**
+     * The side on which the text outline shall be displayed.
+     */
+    var side: HorizontalDirection
+        get() = sideProperty().get()
+        set(value) = sideProperty().set(value)
+
+    /**
+     * The side on which the text outline shall be displayed.
+     */
+    fun sideProperty() = scrollBar.sideProperty()
+
+
+    /**
+     * The width of the text outline
+     */
+    var textOutlineWidth: Double
+        get() = textOutlineWidthProperty().get()
+        set(value) = textOutlineWidthProperty().set(value)
+
+    /**
+     * The width of the text outline
+     */
+    fun textOutlineWidthProperty(): DoubleProperty = scrollBar.textOutlineWidthProperty()
 
     protected abstract val diff: List<DiffRow>
 

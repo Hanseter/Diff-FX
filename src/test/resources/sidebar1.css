@@ -1,12 +1,16 @@
 .diff-outline .line:unchanged {
-    -fx-fill: transparent
+    -fx-fill: transparent;
 }
 .diff-outline .line:changed {
-    -fx-fill: orange
+    -fx-fill: orange;
 }
 .diff-outline .line:new {
-    -fx-fill: green
+    -fx-fill: green;
 }
 .diff-outline .line:removed {
-    -fx-fill: red
+    -fx-fill: red;
+}
+.diff-outline .viewport-line {
+    -fx-stroke: lightblue;
+    -fx-fill: #add8e655;
 }

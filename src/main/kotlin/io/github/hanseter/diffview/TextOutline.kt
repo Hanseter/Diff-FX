@@ -1,7 +1,9 @@
 package io.github.hanseter.diffview
 
 import javafx.application.Platform
+import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ObjectProperty
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.geometry.HorizontalDirection
 import javafx.scene.Cursor
@@ -12,6 +14,7 @@ import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
+import javafx.scene.paint.Paint
 import javafx.scene.shape.StrokeLineCap
 import org.fxmisc.richtext.CodeArea
 
@@ -21,6 +24,17 @@ import org.fxmisc.richtext.CodeArea
  * Please note, that the code areas shall not be displayed elsewhere in the scenegraph as they will be added to the [TextOutline.node].
  */
 class TextOutline(private val codeAreas: List<TextControl<*>>) {
+
+    var viewPortFill: Paint = Color.LIGHTBLUE.deriveColor(0.0, 1.0, 1.0, 0.3)
+        set(value) {
+            field = value
+            redrawOutline()
+        }
+    var viewPortStroke: Paint = Color.LIGHTBLUE
+        set(value) {
+            field = value
+            redrawOutline()
+        }
 
     var minLineHeight = 0.5
         set(value) {
@@ -51,18 +65,42 @@ class TextOutline(private val codeAreas: List<TextControl<*>>) {
      */
     fun sideProperty() = _sideProperty
 
+
+    private val _textOutlineWidthProperty: SimpleDoubleProperty =
+        SimpleDoubleProperty(100.0).apply {
+            addListener { _, _, width ->
+                outlineCanvas.width = width.toDouble()
+                viewPortCanvas.width = width.toDouble()
+                scrollbar.prefWidth = width.toDouble()
+                drawTextOutline()
+                drawViewPort()
+            }
+        }
+
+    /**
+     * The width of the text outline
+     */
+    var textOutlineWidth: Double
+        get() = textOutlineWidthProperty().get()
+        set(value) = textOutlineWidthProperty().set(value)
+
+    /**
+     * The width of the text outline
+     */
+    fun textOutlineWidthProperty(): DoubleProperty = _textOutlineWidthProperty
+
     private var dirty = false
     private val outlineCanvas = Canvas().apply {
-        width = 100.0 * codeAreas.size
+        width = textOutlineWidth
         heightProperty().bind(codeAreas.first().control.heightProperty())
     }
     private val viewPortCanvas = Canvas().apply {
-        width = 100.0 * codeAreas.size
+        width = textOutlineWidth
         heightProperty().bind(codeAreas.first().control.heightProperty())
         applyCss()
     }
     private val scrollbar = StackPane(outlineCanvas, viewPortCanvas).apply {
-        prefWidth = 100.0 * codeAreas.size
+        prefWidth = textOutlineWidth
         prefHeightProperty().bind(codeAreas.first().control.heightProperty())
         layoutBoundsProperty().addListener { _, _, _ ->
             Platform.runLater {
@@ -119,12 +157,14 @@ class TextOutline(private val codeAreas: List<TextControl<*>>) {
     private fun drawTextOutline() {
         val maxLineWidth = findLongestLine()
         val controlWithMostLines = codeAreas.maxBy { it.lineCount }
-        val widthPerChar = 100.0 / (maxLineWidth + 1)
-        val heightPerLine = scrollbar.height / (controlWithMostLines.lineCount + 1)
+        val height = scrollbar.height.coerceAtMost(codeAreas.maxOf { it.contentHeight })
+        val widthPerCodeArea = textOutlineWidth / codeAreas.size
+        val widthPerChar = widthPerCodeArea / (maxLineWidth + 1)
+        val heightPerLine = height / (controlWithMostLines.lineCount + 1)
         val ctx = outlineCanvas.graphicsContext2D
         ctx.clearRect(0.0, 0.0, scrollbar.width, scrollbar.height)
         codeAreas.forEachIndexed { i, it ->
-            ctx.translate(i * 100.0, 0.0)
+            ctx.translate(i * widthPerCodeArea, 0.0)
             if (i > 0) {
                 ctx.stroke = Color.BLACK
                 ctx.lineCap = StrokeLineCap.BUTT
@@ -135,7 +175,7 @@ class TextOutline(private val codeAreas: List<TextControl<*>>) {
             ctx.lineWidth = (heightPerLine / 2).coerceAtLeast(minLineHeight).coerceAtMost(5.0)
             drawLines(ctx, it, heightPerLine, widthPerChar)
         }
-        ctx.translate(-100.0 * (codeAreas.size - 1), 0.0)
+        ctx.translate(-widthPerCodeArea * (codeAreas.size - 1), 0.0)
     }
 
     private fun drawViewPort() {
@@ -206,8 +246,8 @@ class TextOutline(private val codeAreas: List<TextControl<*>>) {
     }
 
     private fun drawVisibleTextIndiciator(ctx: GraphicsContext, control: TextControl<*>) {
-        ctx.fill = Color.LIGHTBLUE.deriveColor(0.0, 1.0, 1.0, 0.3)
-        ctx.stroke = Color.LIGHTBLUE
+        ctx.fill = viewPortFill
+        ctx.stroke = viewPortStroke
         val lineSize = control.lineCount - 1
         val startPct: Double
         val endPct: Double

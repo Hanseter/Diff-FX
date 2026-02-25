@@ -18,11 +18,11 @@ fun main(args: Array<String>) {
 }
 
 class TestApp : Application() {
-    private val leftText = (0..4000).joinToString("\n") {
+    private val leftText = (0..20).joinToString("\n") {
         if (Random.nextInt(100) < 1) "<Hello Moon>"
         else "Hello World"
     }
-    private val rightText = (0..4000).joinToString("\n") {
+    private val rightText = (0..20).joinToString("\n") {
         if (Random.nextInt(100) < 1) "<Hello Moon>"
         else "Hello World"
     }
@@ -37,6 +37,7 @@ class TestApp : Application() {
             else InPlaceDiffView(leftText, rightText)
             diffView = toAdd
             thicknessText.text.toDoubleOrNull()?.let { toAdd.minLineThickness = it }
+            widthText.text.toDoubleOrNull()?.let { toAdd.textOutlineWidth = it }
             VBox.setVgrow(toAdd.node, Priority.ALWAYS)
             stackPane.children.add(toAdd.node)
         }
@@ -72,13 +73,22 @@ class TestApp : Application() {
     val scrollPrevButton = Button("Prev").apply {
         setOnAction { diffView?.scrollToPreviousDiff() }
     }
+    val widthText = TextField("100").apply {
+        textProperty().addListener { _, _, value ->
+            val width = value.toDoubleOrNull() ?: return@addListener
+            diffView?.textOutlineWidth = width
+        }
+    }
 
     private val stackPane = StackPane().apply {
         VBox.setVgrow(this, Priority.ALWAYS)
     }
 
     val mainNode =
-        VBox(HBox(cb, cssCb, thicknessText, scrollNextButton, scrollPrevButton), stackPane)
+        VBox(
+            HBox(cb, cssCb, thicknessText, scrollNextButton, scrollPrevButton, widthText),
+            stackPane
+        )
 
     override fun start(stage: Stage) {
         cb.selectionModel.selectFirst()

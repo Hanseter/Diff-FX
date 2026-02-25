@@ -24,6 +24,9 @@ class CodeAreaOutlineWrapper(override val control: CodeArea) : TextControl<CodeA
     override val lastVisibleLine: Int
         get() = control.lastVisibleParToAllParIndex()
 
+    override val contentHeight: Double
+        get() = control.totalHeightEstimate
+
     override fun textProperty(): ObservableValue<String> = control.textProperty()
 
     override fun scrollToYPercent(y: Double) {
@@ -33,5 +36,6 @@ class CodeAreaOutlineWrapper(override val control: CodeArea) : TextControl<CodeA
     override fun addVisibleLinesChangedCallback(callback: () -> Unit) {
         control.visibleParagraphs.addChangeObserver { callback() }
     }
+
     override fun getLineColor(line: String, index: Int): Paint = lineColorizer(index, line)
 }
