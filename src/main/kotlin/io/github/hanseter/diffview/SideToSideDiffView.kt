@@ -2,13 +2,13 @@ package io.github.hanseter.diffview
 
 import com.github.difflib.text.DiffRow
 import com.github.difflib.text.DiffRowGenerator
-import javafx.beans.property.DoubleProperty
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.scene.Node
+import javafx.application.Platform
+import javafx.beans.value.ChangeListener
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
-import javafx.scene.layout.StackPane
 import org.fxmisc.richtext.CodeArea
+import org.reactfx.util.Either.left
+import org.reactfx.util.Either.right
 
 /**
  * A control to show the diff between two versions of a text side by side.
@@ -77,7 +77,22 @@ class SideToSideDiffView(leftText: String, rightText: String) : DiffViewBase() {
         ))
 
     init {
-        keepScrollInSync()
+        Platform.runLater {
+            keepScrollInSync()
+
+            left.estimatedScrollYProperty().value = 0.0
+            right.estimatedScrollYProperty().value = 0.0
+        }
+
+        val listener = ChangeListener<Number> { _, old, _ ->
+            //The total height property returns if the code area is added to the scene graph but it's not visible.
+            //In that case we need to redraw the outline once it becomes visible.
+            //Worst case we redraw for no good reason which is fine.
+            if (old == 0.0) scrollBar.redrawOutline()
+        }
+
+        left.totalHeightEstimateProperty().addListener(listener)
+        right.totalHeightEstimateProperty().addListener(listener)
     }
 
     private fun keepScrollInSync() {

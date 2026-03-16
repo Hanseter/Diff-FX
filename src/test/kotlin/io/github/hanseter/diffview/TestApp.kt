@@ -18,11 +18,11 @@ fun main(args: Array<String>) {
 }
 
 class TestApp : Application() {
-    private val leftText = (0..20).joinToString("\n") {
+    private val leftText = (0..200).joinToString("\n") {
         if (Random.nextInt(100) < 1) "<Hello Moon>"
         else "Hello World"
     }
-    private val rightText = (0..20).joinToString("\n") {
+    private val rightText = (0..200).joinToString("\n") {
         if (Random.nextInt(100) < 1) "<Hello Moon>"
         else "Hello World"
     }

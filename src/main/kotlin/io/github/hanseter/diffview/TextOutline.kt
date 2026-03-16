@@ -120,7 +120,7 @@ class TextOutline(private val codeAreas: List<TextControl<*>>) {
     private var visibleRange = Double.MAX_VALUE.rangeTo(Double.MAX_VALUE)
 
     /**
-     * The hbox containing the code areas as well as the textoutline.
+     * The HBox containing the code areas as well as the textoutline.
      */
     val node = HBox(scrollbar).apply {
         children.addAll(codeAreas.map { it.control })
@@ -157,7 +157,8 @@ class TextOutline(private val codeAreas: List<TextControl<*>>) {
     private fun drawTextOutline() {
         val maxLineWidth = findLongestLine()
         val controlWithMostLines = codeAreas.maxBy { it.lineCount }
-        val height = scrollbar.height.coerceAtMost(codeAreas.maxOf { it.contentHeight })
+        val height =
+            scrollbar.height.coerceAtMost(codeAreas.maxOf { it.contentHeight })
         val widthPerCodeArea = textOutlineWidth / codeAreas.size
         val widthPerChar = widthPerCodeArea / (maxLineWidth + 1)
         val heightPerLine = height / (controlWithMostLines.lineCount + 1)
