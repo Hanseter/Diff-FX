@@ -6,20 +6,22 @@
 
     <groupId>io.github.hanseter</groupId>
     <artifactId>diff-view</artifactId>
-    <version>0.0.3</version>
+    <version>0.1.0</version>
     <packaging>bundle</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
 
         <kotlin.code.style>official</kotlin.code.style>
-        <kotlin.compiler.jvmTarget>21</kotlin.compiler.jvmTarget>
-        <kotlin.version>2.0.21</kotlin.version>
+        <kotlin.compiler.jvmTarget>25</kotlin.compiler.jvmTarget>
+        <kotlin.version>2.3.20</kotlin.version>
+        <kotlin.compiler.apiVersion>2.3</kotlin.compiler.apiVersion>
+        <kotlin.compiler.languageVersion>2.3</kotlin.compiler.languageVersion>
 
-        <javafx.version>21.0.4</javafx.version>
+        <javafx.version>25.0.2</javafx.version>
     </properties>
 
     <build>
@@ -117,12 +119,12 @@
         <dependency>
             <groupId>org.fxmisc.richtext</groupId>
             <artifactId>richtextfx</artifactId>
-            <version>0.11.4</version>
+            <version>0.11.7</version>
         </dependency>
         <dependency>
             <groupId>io.github.java-diff-utils</groupId>
             <artifactId>java-diff-utils</artifactId>
-            <version>4.15</version>
+            <version>4.16</version>
         </dependency>
     </dependencies>
 
