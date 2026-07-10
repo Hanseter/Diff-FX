@@ -5,6 +5,7 @@ import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ObjectProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleObjectProperty
+import javafx.beans.value.ChangeListener
 import javafx.geometry.HorizontalDirection
 import javafx.scene.Cursor
 import javafx.scene.canvas.Canvas
@@ -305,9 +306,18 @@ class TextOutline(private val codeAreas: List<TextControl<*>>) {
 
     companion object {
         fun forCodeArea(ca: CodeArea): TextOutline =
-            TextOutline(listOf(CodeAreaOutlineWrapper(ca)))
+            forCodeAreas(listOf(ca))
 
-        fun forCodeAreas(cas: List<CodeArea>): TextOutline =
-            TextOutline(cas.map { CodeAreaOutlineWrapper(it) })
+        fun forCodeAreas(cas: List<CodeArea>): TextOutline {
+            return TextOutline(cas.map { CodeAreaOutlineWrapper(it) }).apply {
+                val listener = ChangeListener<Number> { _, old, _ ->
+                    //The total height property returns if the code area is added to the scene graph but it's not visible.
+                    //In that case we need to redraw the outline once it becomes visible.
+                    //Worst case we redraw for no good reason which is fine.
+                    if (old == 0.0) redrawOutline()
+                }
+                cas.forEach { it.totalHeightEstimateProperty().addListener(listener) }
+            }
+        }
     }
 }
